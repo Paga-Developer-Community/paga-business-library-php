@@ -4,11 +4,11 @@ This Business Service Library is a PHP module that helps you make API calls when
 
 # Examples
 include("PagaBusinessClient.php");
-$businessClient = PagaBusinessClient::builder()
-                ->setApiKey("<apiKey>")
-                ->setPrincipal("<publicId>")
-                ->setCredential("<password>")
-                ->setTest(true)
+$businessClient = PagaBusinessClient::builder()\
+                ->setApiKey("<apiKey>")\
+                ->setPrincipal("<publicId>")\
+                ->setCredential("<password>")\
+                ->setTest(true)\
                 ->build();
 
 $response = $businessClient-> getBanks($reference_number);
