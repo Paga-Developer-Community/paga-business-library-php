@@ -1,0 +1,39 @@
+{
+    "name": "paga/paga-business",
+    "description": "This document lists the different RESTful web services Paga offers to businesses and guide’s you in setting up these services.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "pagadevcomm",
+            "email": "pagadevcomm@paga.com"
+        },
+        {
+            "name": "Nwabuokei Nnamdi",
+            "email": "nnwabuokei@paga.com",
+            "role": "Software Engineer"
+
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/pagadevcomm/paga-business-library-php/issues"
+    },
+    
+    "minimum-stability": "dev",
+    "config": {
+        "platform": {
+            "php": "7.2.29"
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "PagaBusiness\\":"src/PagaBusiness"
+        }
+    }
+
+}
