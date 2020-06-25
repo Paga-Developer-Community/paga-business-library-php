@@ -25,7 +25,7 @@ namespace PagaBusiness;
 class PagaBusinessClient
 {
 
-    var $test_server = "https://qa1.mypaga.com"; //"http://localhost:8080"
+    var $test_server = "https://beta.mypaga.com"; //"http://localhost:8080"
     var $live_server = "https://www.mypaga.com";
 
 
