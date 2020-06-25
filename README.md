@@ -25,7 +25,7 @@ For more information on the services listed above, visit the [Paga DEV website](
 
 ## How to use
 
-`composer require paga/paga-merchant`
+`composer require paga/paga-business`
 
  
 ```
