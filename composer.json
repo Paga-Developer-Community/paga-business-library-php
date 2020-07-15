@@ -28,7 +28,8 @@
         "sort-packages": true
     },
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.3.3",
+        "monolog/monolog": "^2.1"
     },
     "autoload": {
         "psr-4": {
