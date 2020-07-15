@@ -1,4 +1,4 @@
-# PagaBusiness PHP API Library v1.0.0
+# PagaBusiness PHP API Library v1.0.1
 
 ## Business Services exposed by the library
 
@@ -318,6 +318,7 @@ $response = $businessClient_test -> onboardMerchant($reference, $merchantExterna
 
 ```
 Click [here](https://mypaga.readme.io/docs/business-rest-api-operations#section-17-onboard-merchant) to get more info on **OnboardMerchant**.
+
 ![Packagist Downloads](https://img.shields.io/packagist/dm/paga/paga-business?style=plastic)
 ![Packagist License](https://img.shields.io/packagist/l/paga/paga-business?style=plastic)
 ![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/paga/paga-business?style=plastic)
