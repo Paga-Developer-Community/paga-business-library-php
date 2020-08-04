@@ -1,4 +1,4 @@
-# PagaBusiness PHP API Library v1.0.1
+# PagaBusiness PHP API Library v1.0.3
 
 ## Business Services exposed by the library
 

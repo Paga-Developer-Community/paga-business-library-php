@@ -35,7 +35,7 @@ $logger->pushHandler(new StreamHandler('php://stderr', Logger::WARNING));
  */
 class PagaBusinessClient
 {
-    public $test_server = "https://beta.mypaga.com"; //"http://localhost:8080"
+    public $test_server = "https://beta.mypaga.com"; 
     public $live_server = "https://www.mypaga.com";
 
 
