@@ -662,7 +662,7 @@ class PagaBusinessClient
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
             $this->checkCURL($curl, json_decode($response, true));
-            return $response
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
