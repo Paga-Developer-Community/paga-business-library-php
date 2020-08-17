@@ -195,7 +195,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -222,7 +223,8 @@ class PagaBusinessClient
             $hash =$this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -257,7 +259,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
             
@@ -288,7 +291,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -316,7 +320,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -417,7 +422,8 @@ class PagaBusinessClient
             $response = shell_exec($curl_cmd);
             $logger = new Logger('stderr');
             $logger->pushHandler(new StreamHandler('php://stderr'));
-            return $logger->info('response:', [json_decode($response, true)]);
+            $logger->info('response:', [json_decode($response, true)]);
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -480,7 +486,8 @@ class PagaBusinessClient
 
             $logger = new Logger('stderr');
             $logger->pushHandler(new StreamHandler('php://stderr'));
-            return $logger->info('response:', [json_decode($response, true)]);
+            $logger->info('response:', [json_decode($response, true)]);
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -521,7 +528,8 @@ class PagaBusinessClient
             $response = shell_exec($curl_cmd);
             $logger = new Logger('stderr');
             $logger->pushHandler(new StreamHandler('php://stderr'));
-            return $logger->info('response:', [json_decode($response, true)]);
+            $logger->info('response:', [json_decode($response, true)]);
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -591,7 +599,8 @@ class PagaBusinessClient
             $hash = $this->createHash($hash_string);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -625,7 +634,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -651,7 +661,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -695,7 +706,8 @@ class PagaBusinessClient
             $hash = $this->createHash($hash_string);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return  $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -731,7 +743,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -772,7 +785,8 @@ class PagaBusinessClient
             $hash = $this->createHash($hash_string);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -816,7 +830,8 @@ class PagaBusinessClient
             $hash = $this->createHash($hash_string);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -842,7 +857,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -868,7 +884,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -911,7 +928,8 @@ class PagaBusinessClient
 
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -941,7 +959,8 @@ class PagaBusinessClient
             $hash = $this->createHash($data);
             $curl = $this->buildRequest($url, $hash, $data);
             $response = curl_exec($curl);
-            return $this->checkCURL($curl, json_decode($response, true));
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
         } catch (Exception $e) {
             return $e->getMessage();
         }
