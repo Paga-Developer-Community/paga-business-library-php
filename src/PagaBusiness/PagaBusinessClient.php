@@ -25,7 +25,7 @@ namespace PagaBusiness;
 class PagaBusinessClient
 {
 
-    var $test_server = "https://qa1.mypaga.com"; //"http://localhost:8080"
+    var $test_server = "https://beta.mypaga.com"; //"http://localhost:8080"
     var $live_server = "https://www.mypaga.com";
 
 
@@ -33,7 +33,7 @@ class PagaBusinessClient
     /**
      * __construct function
      *
-     * @param mixed[] $builder Builder Object
+     * @param object $builder Builder Object
      */
     function __construct($builder)
     {
@@ -68,7 +68,8 @@ class PagaBusinessClient
     {
 
         $curl = curl_init();
-        curl_setopt_array($curl, array(
+        curl_setopt_array(
+            $curl, array(
             CURLOPT_URL => $url,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HTTPHEADER => array("content-type: application/json", "Accept: application/json","hash:$hash","principal:$this->principal", "credentials: $this->credential"),
@@ -154,7 +155,7 @@ class PagaBusinessClient
     /**
      * Create Hash  function
      *
-     * @param string $data parameters for hashing
+     * @param array $data parameters for hashing
      * 
      * @return $hash
      */
@@ -330,80 +331,46 @@ class PagaBusinessClient
     /**
      * Register Customer function
      *
-     * @param string      $reference_number                 
-     *                                                      A unique reference number
-     *                                                      provided by the business
-     *                                                      identifying the transaction.                                              
-     * @param string      $customerPhoneNumber              The identifying credential (principal)
-     *                                                      for the customer
-     *                                                      (eg.phone number)      
-     * @param string      $firstName                        The first name of the customer
-     * @param string      $lastName                         The last name of the customer
-     * @param string      $customerIdType                   The Type of Customer Id: ex.DRIVERS_LICENCE, NATIONAL_ID,PASSPORT, RESIDENT_PERMIT, STUDENT_ID, EMPLOYER_ID, TAX_CARD, NYSC_ID_CARD, SWORN_AFFIDAVIT,VOTERS_CARD, UNION_ID,BVN, CORPORATE_AFFAIRS_COMMISSION  
-     * @param string      $customerIdNumber                 The customer Id number of length 10 or 11 characters long.
-     * @param string      $customerIdExpirationDate         The expiration date of the CustomerId         
-     * @param string      $customerEmail                    Email of the customer
-     * @param date:string $customerDateOfBirth              Birth date of the customer           
-     * @param string      $customerGender                   gender of the customer(MALE or FEMALE) 
-     * @param array       $customerAddress                  Address of the customer consists of
-     *                                                      {country, region, county, city, localGovernmentArea, 
-     *                                                      streetAddress, postalCode, landmark, freeformAddress}
-     * @param string      $customerMaritalStatus            MaritalStatus (Married, Single)
-     * @param string      $customerPreferredLanguageISOCode Language en us
-     * @param string      $customerReferredByFirstName      First name of the referrer
-     * @param string      $customerReferredByLastName       Last name of the referrer
-     * @param string      $customerReferredByPhoneNumber    PhoneNumber of the referrer
-     * @param boolean     $optionForWalletSavings           flag to option for wallet saving
-     * @param string      $passportPhoto_path               The path to the customers Passport photo
-     * @param string      $idPhoto_path                     The path to the customers Id photo
+     * @param string      $reference_number    A unique reference number
+     *                                         provided by the business identifying
+     *                                         the transaction.                                              
+     * @param string      $customerPhoneNumber The identifying credential (principal)
+     *                                         for the customer
+     *                                         (e.g.phone number)      
+     * @param string      $customerFirstName   The first name of the customer
+     * @param string      $customerLastName    The last name of the customer
+     * @param string      $customerEmail       Email of the customer
+     * @param date:string $customerDateOfBirth Birth date of the customer         
      * 
      * @return void
      */
-    function registerCustomer($reference_number, $customerPhoneNumber, $firstName, 
-        $lastName, $customerIdType, $customerIdNumber, $customerIdExpirationDate,    
-        $customerEmail, $customerDateOfBirth, $customerGender, $customerAddress,
-        $customerMaritalStatus, $customerPreferredLanguageISOCode,
-        $customerReferredByFirstName, $customerReferredByLastName,
-        $customerReferredByPhoneNumber, $optionForWalletSavings,
-        $passportPhoto_path, $idPhoto_path
+    function registerCustomer($reference_number, $customerPhoneNumber, 
+        $customerFirstName,$customerLastName, $customerEmail, $customerDateOfBirth
     ) {
 
         $server = ($this->test) ? $this->test_server : $this->live_server;
         $url = $server."/paga-webservices/business-rest/secured/registerCustomer";
-        $credential = null;
         $data = array(
             'referenceNumber'=>$reference_number,
             'customerPhoneNumber'=>$customerPhoneNumber,
-            'customerFirstName'=>$firstName,
-            'customerLastName'=>$lastName,
-            'customerIdType'=>$customerIdType,
-            'customerIdNumber'=>$customerIdNumber,
-            'customerIdExpirationDate'=>$customerIdExpirationDate,
+            'customerFirstName'=>$customerFirstName,
+            'customerLastName'=>$customerLastName,
             'customerEmail'=>$customerEmail,
-            'customerDateOfBirth'=>$customerDateOfBirth,
-            'customerGender'=>$customerGender,
-            'customerAddress'=>$customerAddress,
-            'customerMaritalStatus'=>$customerMaritalStatus,
-            'customerPreferredLanguageISOCode'=>$customerPreferredLanguageISOCode,
-            'customerReferredByFirstName'=>$customerReferredByFirstName,
-            'customerReferredByLastName'=>$customerReferredByLastName,
-            'customerReferredByPhoneNumber'=>$customerReferredByPhoneNumber,
-            'optinForWalletSavings'=>$optionForWalletSavings
-
+            'customerDateOfBirth'=>$customerDateOfBirth
         );
 
-        $hash_string = $reference_number.$customerPhoneNumber.$firstName.$lastName.$this->apiKey;
+        $hash_string = $reference_number.
+            $customerPhoneNumber.$customerFirstName.$customerLastName.$this->apiKey;
 
         $hash = hash('sha512', $hash_string);
-
-        $curl_cmd = $this->buildRequestMultpartForm($url, $hash, $data, $passportPhoto_path, $idPhoto_path);
-
-        $response = shell_exec($curl_cmd);
-
+        $curl = $this->buildRequest($url, $hash, $data);
+        $response = curl_exec($curl);
+        $this->checkCURL(($curl));
         return $response;
 
     }
 
+      
 
     /**
      * Register customer Identification
