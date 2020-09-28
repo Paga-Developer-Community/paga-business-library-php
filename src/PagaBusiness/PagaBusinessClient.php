@@ -5,28 +5,38 @@
  * PHP version >=5
  *
  * @category  PHP
- * @package   PagaMerchant
+ * @package   PagaBusiness
  * @author    PagaDevComm <devcomm@paga.com>
  * @copyright 2020 Pagatech Financials
  * @license   http://www.php.net/license/3_01.txt  PHP License 3.01
- * @link      https://packagist.org/packages/paga/paga-merchant
+ * @link      https://packagist.org/packages/paga/paga-business
  */
+
 namespace PagaBusiness;
+
+use Exception;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+
+
+$logger = new Logger('stderr');
+$logger->pushHandler(new StreamHandler('php://stderr', Logger::WARNING));
+
+
 /**
  * PagaBusinessClient  class
- * 
+ *
  * @category  PHP
- * @package   PagaMerchant
+ * @package   PagaBusiness
  * @author    PagaDevComm <devcomm@paga.com>
  * @copyright 2020 Pagatech Financials
  * @license   http://www.php.net/license/3_01.txt  PHP License 3.01
- * @link      https://packagist.org/packages/paga/paga-merchant
+ * @link      https://packagist.org/packages/paga/paga-business
  */
 class PagaBusinessClient
 {
-
-    var $test_server = "https://beta.mypaga.com"; //"http://localhost:8080"
-    var $live_server = "https://www.mypaga.com";
+    public $test_server = "https://beta.mypaga.com"; 
+    public $live_server = "https://www.mypaga.com";
 
 
 
@@ -35,7 +45,7 @@ class PagaBusinessClient
      *
      * @param object $builder Builder Object
      */
-    function __construct($builder)
+    public function __construct($builder)
     {
         $this->apiKey =$builder->apiKey;
         $this->principal = $builder->principal;
@@ -51,28 +61,30 @@ class PagaBusinessClient
     public static function builder()
     {
         return new Builder();
-    } 
+    }
 
 
     /**
      * BuildRequest function
      *
      * @param string  $url  Authorization code url
-     * @param string  $hash sha512 encoding of the required parameters 
+     * @param string  $hash sha512 encoding of the required parameters
      *                      and the clientAPI key
      * @param mixed[] $data request body data
-     * 
+     *
      * @return $curl
      */
     public function buildRequest($url, $hash, $data = null)
     {
-
         $curl = curl_init();
         curl_setopt_array(
-            $curl, array(
+            $curl,
+            array(
             CURLOPT_URL => $url,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_HTTPHEADER => array("content-type: application/json", "Accept: application/json","hash:$hash","principal:$this->principal", "credentials: $this->credential"),
+            CURLOPT_HTTPHEADER => array("content-type: application/json",
+            "Accept: application/json","hash:$hash","principal:$this->principal",
+            "credentials: $this->credential"),
 
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => "POST",
@@ -87,40 +99,30 @@ class PagaBusinessClient
             $data_string = json_encode($data);
 
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-
         }
 
         return $curl;
     }
 
-    // /**
-    //  * Undocumented function
-    //  *
-    //  * @param string $url                       Authorization code url
-    //  * @param string $hash                      sha512 encoding of the required 
-    //  *                                          parameters and the clientAPI key
-    //  * @param JSON   $data                      request body data
-    //  * 
-    //  * @param string $idPhoto_path              path to idPhoto
-    //  * 
-    //  * @return $cmd
-    //  */
     /**
      * Builder Request Multipart Form Function
      *
      * @param string $url                       Authorization code url
      * @param string $hash                      sha512 encoding of the required
      *                                          parameters and the clientAPI key
+     * @param JSON   $data                      request body data
      * @param string $customerAccountPhoto_path path to customerAccountPhoto
      * @param string $idPhoto_path              path to idPhoto
-     * @param JSON   $data                      request body data
      * 
      * @return $cmd
      */
-    public function buildRequestMultpartForm($url, $hash, $customerAccountPhoto_path,
-        $idPhoto_path, $data = null
+    public function buildRequestMultpartForm(
+        $url,
+        $hash,
+        $data = null,
+        $customerAccountPhoto_path = null,
+        $idPhoto_path = null
     ) {
-
         if ($data != null) {
             $data_string = json_encode($data);
         }
@@ -134,7 +136,8 @@ class PagaBusinessClient
 
 
         if ($customerAccountPhoto_path!=null) {
-            $cmd .= "--form 'customerAccountPhoto=@$customerAccountPhoto_path;type=image/jpeg' \\";
+            $cmd .= "--form 'customerAccountPhoto=@$customerAccountPhoto_path;
+            type=image/jpeg' \\";
         }
 
         if ($idPhoto_path!=null) {
@@ -144,11 +147,9 @@ class PagaBusinessClient
 
         if ($customerAccountPhoto_path!=null && $idPhoto_path!=null) {
             $cmd .=   "--form 'isSubsidiary=true;type=application/json'";
-
         }
            
         return $cmd;
-
     }
 
   
@@ -161,10 +162,9 @@ class PagaBusinessClient
      */
     public function createHash($data)
     {
-
         $hash ="";
         foreach ($data as $key => $value) {
-            $hash = $value.$hash;
+            $hash .= $value;
         }
         $hash=$hash.$this->apiKey;
         $hash = hash('sha512', $hash);
@@ -177,154 +177,149 @@ class PagaBusinessClient
     /**
      * Get Banks function
      *
-     * @param string $reference_number A unique reference number provided by the client to uniquely identify the transaction
+     * @param string $reference_number A unique reference number provided by
+     *                                 the clientto uniquely identify the transaction
      * @param string $locale           The language/locale to be used in messaging.
-     * 
+     *
      * @return JSON Object with List of Banks integrated with paga
      */
-    function getBanks($reference_number, $locale = null)
+    public function getBanks($reference_number, $locale = null)
     {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/getBanks";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number
-        );
-
-        $hash = hash('sha512', $reference_number.$this->apiKey);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
-
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured/getBanks";
+            $data = array(
+                'referenceNumber'=>$reference_number
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
-     * Undocumented function
-     *
-     * @param string $reference_number A unique reference number provided by the client to uniquely identify the transaction
-     * @param string $locale           The language/locale to be used in messaging.
-     * 
-     * @return JSON Object with List of merchants integrated with paga
-     */
-    function getMerchants($reference_number, $locale = null)
-    {
-
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/getMerchants";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number
-        );
-
-        $hash = hash('sha512', $reference_number.$this->apiKey);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-
-        return $response;
-
-    }
-
-
-    /**
-     * Undocumented function
+     * Get Merchants function
      *
      * @param string $reference_number A unique reference number provided by the
      *                                 client to uniquely identify the transaction
-     * @param string $merchantPublicId The identifier which uniquely identifies  
+     * @param string $locale           The language/locale to be used in messaging.
+     *
+     * @return JSON Object with List of merchants integrated with paga
+     */
+    public function getMerchants($reference_number, $locale = null)
+    {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured/getMerchants";
+            $data = array(
+            'referenceNumber'=>$reference_number
+            );
+            $hash =$this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+
+    /**
+     * Get Merchant Services function
+     *
+     * @param string $reference_number A unique reference number provided by the
+     *                                 client to uniquely identify the transaction
+     * @param string $merchantPublicId The identifier which uniquely identifies
      *                                 the merchant on the Paga platform.
      * @param string $locale           The language/locale to be used in messaging.
-     * 
+     *
      * @return JSON Object with List of services of the merchant
      */
-    function getMerchantServices($reference_number, $merchantPublicId,
+    public function getMerchantServices(
+        $reference_number,
+        $merchantPublicId,
         $locale = null
     ) {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/getMerchantServices";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'merchantPublicId'=>$merchantPublicId
-        );
-
-        $hash_string = $reference_number.$merchantPublicId.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
-
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/getMerchantServices";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'merchantPublicId'=>$merchantPublicId
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+            
+        }
     }
 
 
 
     /**
-     * Get Operation Status function 
+     * Get Operation Status function
      *
-     * @param string $reference_number A unique reference number provided by the 
+     * @param string $reference_number A unique reference number provided by the
      *                                 client to uniquely identify the transaction
      * @param string $locale           The language/locale to be used in messaging.
-     * 
+     *
      * @return JSON Object with the details of the transaction.
      */
-    function getOperationStatus($reference_number,$locale = null)
+    public function getOperationStatus($reference_number, $locale = null)
     {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/getOperationStatus";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number
-        );
-
-        $hash_string = $reference_number.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
-
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/getOperationStatus";
+            $data = array(
+                'referenceNumber'=>$reference_number
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Get Mobile Operators function
      *
-     * @param string $reference_number A unique reference number provided by the 
+     * @param string $reference_number A unique reference number provided by the
      *                                 client to uniquely identify the transaction
      * @param string $locale           The language/locale to be used in messaging.
-     * 
+     *
      * @return JSON Object with List of mobile operators integrated with paga.
      */
-    function getMobileOperators($reference_number,$locale = null)
+    public function getMobileOperators($reference_number, $locale = null)
     {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/getMobileOperators";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number
-        );
-
-        $hash_string = $reference_number.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
-
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/getMobileOperators";
+            $data = array(
+                'referenceNumber'=>$reference_number
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
 
@@ -365,7 +360,7 @@ class PagaBusinessClient
         $hash = hash('sha512', $hash_string);
         $curl = $this->buildRequest($url, $hash, $data);
         $response = curl_exec($curl);
-        $this->checkCURL(($curl));
+        $this->checkCURL($curl, json_decode($response, true));
         return $response;
 
     }
@@ -374,7 +369,7 @@ class PagaBusinessClient
 
     /**
      * Register customer Identification
-     * 
+     *
      * @param string      $reference_number         A unique reference number provided by the business,
      *                                              identifying the transaction. This reference number will be
      *                                              preserved on the Paga platform to reconcile the operation
@@ -382,88 +377,106 @@ class PagaBusinessClient
      * @param string      $customerPhoneNumber      The identifying credential (principal) for the customer (eg.
      *                                              phone number). This will be checked against the Paga
      *                                              system to determine if the account belongs to an existing user
-     * @param string      $customerIdType           The IdentificationType of customer(eg. EMPLOYER_ID, STUDENT_ID)       
-     * @param string      $customerIdNumber         The Id Number of the customer    
+     * @param string      $customerIdType           The IdentificationType of customer(eg. EMPLOYER_ID, STUDENT_ID)
+     * @param string      $customerIdNumber         The Id Number of the customer
      * @param date:string $customerIdExpirationDate Expiration date of the customer iD
      * @param String      $idPhoto_path             path of the customer id photo
      *
      * @return JSONObject
      */
-    function registerCustomerIdentification($reference_number, $customerPhoneNumber, $customerIdType, 
-        $customerIdNumber, $customerIdExpirationDate, $idPhoto_path
+    public function registerCustomerIdentification(
+        $reference_number,
+        $customerPhoneNumber,
+        $customerIdType,
+        $customerIdNumber,
+        $customerIdExpirationDate,
+        $idPhoto_path
     ) {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/registerCustomerIdentification";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'customerPhoneNumber'=>$customerPhoneNumber,
+                'customerIdType'=>$customerIdType,
+                'customerIdNumber'=>$customerIdNumber,
+                'customerIdExpirationDate'=>$customerIdExpirationDate
+            );
 
+            $hash_string= array(
+                $reference_number,
+                $customerPhoneNumber,
+                $customerIdType,
+                $customerIdNumber,
+                $customerIdExpirationDate
+            );
 
+            $hash = $this->createHash($hash_string);
 
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/registerCustomerIdentification";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'customerPhoneNumber'=>$customerPhoneNumber,
-            'customerIdType'=>$customerIdType,
-            'customerIdNumber'=>$customerIdNumber,
-            'customerIdExpirationDate'=>$customerIdExpirationDate
+            $curl_cmd = $this->buildRequestMultpartForm(
+                $url, $hash, $data, null, $idPhoto_path
+            );
 
-        );
+            $response = shell_exec($curl_cmd);
 
-
-         $hash_string = $reference_number.$customerPhoneNumber.$customerIdType.$customerIdNumber.$customerIdExpirationDate.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl_cmd = $this->buildRequestMultpartForm($url, $hash, $data, null, $idPhoto_path);
-
-        $response = shell_exec($curl_cmd);
-
-        return $response;
-
+            $logger = new Logger('stderr');
+            $logger->pushHandler(new StreamHandler('php://stderr'));
+            $logger->info('response:', [json_decode($response, true)]);
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Register customer Account Photo
-     * 
+     *
      * @param string $reference_number    A unique reference number provided by the business,
      *                                    identifying the transaction. This reference number will be
      *                                    preserved on the Paga platform to reconcile the operation
-     *                                    across systems and will be returned in the response.        
+     *                                    across systems and will be returned in the response.
      * @param string $customerPhoneNumber The identifying credential (principal) for the customer (eg.
      *                                    phone number). This will be checked against the Paga
-     *                                    system to determine if the account belongs to an existing user        
+     *                                    system to determine if the account belongs to an existing user
      * @param string $passportPhoto_path  The path to the customers account photo
-     *           
+     *
      * @return JSONObject
      */
-    function registerCustomerAccountPhoto($reference_number, $customerPhoneNumber,
+    public function registerCustomerAccountPhoto(
+        $reference_number,
+        $customerPhoneNumber,
         $passportPhoto_path
     ) {
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/registerCustomerAccountPhoto";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'customerPhoneNumber'=>$customerPhoneNumber
-        );
-
-        $hash_string = $reference_number.$customerPhoneNumber.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl_cmd = $this->buildRequestMultpartForm($url, $hash, $data, $passportPhoto_path, null);
-
-        $response = shell_exec($curl_cmd);
-
-        return $response;
-
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/registerCustomerAccountPhoto";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'customerPhoneNumber'=>$customerPhoneNumber
+            );
+            $hash = $this->createHash($data);
+            $curl_cmd = $this->buildRequestMultpartForm(
+                $url, $hash, $data, $passportPhoto_path, null
+            );
+            $response = shell_exec($curl_cmd);
+            $logger = new Logger('stderr');
+            $logger->pushHandler(new StreamHandler('php://stderr'));
+            $logger->info('response:', [json_decode($response, true)]);
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Money Transfer
-     * 
-     * @param string  $referenceNumber          A unique reference number provided by the client to uniquely identify the transaction         
-     * @param string  $amount                   The amount to be sent       
-     * @param string  $destinationAccount       The recipient identifier(ex.Phone number)        
-     * @param string  $senderPrincipal          The username of the sender user         
+     *
+     * @param string  $referenceNumber          A unique reference number provided by the client to uniquely identify the transaction
+     * @param string  $amount                   The amount to be sent
+     * @param string  $destinationAccount       The recipient identifier(ex.Phone number)
+     * @param string  $senderPrincipal          The username of the sender user
      * @param string  $senderCredentials        The password of the send user
      * @param string  $currency                 The currency to be used(e.g,NGN)
      * @param string  $alternateSenderName      alternative name-of-sender
@@ -475,20 +488,30 @@ class PagaBusinessClient
      * @param boolean $suppressRecipientMessage Whether to prevent sending an SMS to the recipient of the money transfer.
      * @param string  $transferReference        The name of a source account for funds
      * @param boolean $sendWithdrawalCode       Defaults to true  this indicates whether confirmation messages for funds sent to non Paga customers will include the withdrawal cod
-     *          
+     *
      * @return JSON Object
      */
-    public function moneyTransfer($referenceNumber,$amount, $destinationAccount,
-        $senderPrincipal, $senderCredentials, $currency, $alternateSenderName=null,
-        $destinationBank=null, $holdingPeriod=null, $minRecipientKYCLevel=null, 
-        $locale=null, $sourceOfFunds=null, $suppressRecipientMessage=null, 
-        $transferReference=null, $sendWithdrawalCode=null
+    public function moneyTransfer(
+        $referenceNumber,
+        $amount,
+        $destinationAccount,
+        $senderPrincipal,
+        $senderCredentials,
+        $currency,
+        $alternateSenderName=null,
+        $destinationBank=null,
+        $holdingPeriod=null,
+        $minRecipientKYCLevel=null,
+        $locale=null,
+        $sourceOfFunds=null,
+        $suppressRecipientMessage=null,
+        $transferReference=null,
+        $sendWithdrawalCode=null
     ) {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/moneyTransfer";
-        $credential = null;
-        $data = array(
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured/moneyTransfer";
+            $data = array(
             'referenceNumber'=>$referenceNumber,
             'amount'=>$amount,
             'destinationAccount'=>$destinationAccount,
@@ -505,151 +528,156 @@ class PagaBusinessClient
             'minRecipientKYCLevel'=>$minRecipientKYCLevel,
             'holdingPeriod'=>$holdingPeriod
 
-        );
-
-        $hash_string = $referenceNumber.$amount.$destinationAccount.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+            );
+            $hash_string = array($referenceNumber,$amount,$destinationAccount);
+            $hash = $this->createHash($hash_string);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
 
     /**
      * Airtime Purchase
-     * 
-     * @param string $reference_number       A unique reference number provided by the client to uniquely identify the transaction.          
-     * @param string $amount                 The amount airtime to be purchased.          
+     *
+     * @param string $reference_number       A unique reference number provided by the client to uniquely identify the transaction.
+     * @param string $amount                 The amount airtime to be purchased.
      * @param string $destinationPhoneNumber The phone number to which the airtime is purchased
-     *            
+     *
      * @return JSON Object
      */
-    public function airtimePurchase($reference_number,$amount, 
+    public function airtimePurchase(
+        $reference_number,
+        $amount,
         $destinationPhoneNumber
     ) {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/airtimePurchase";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'amount'=>$amount,
-            'destinationPhoneNumber'=>$destinationPhoneNumber
-
-        );
-
-        $hash_string = $reference_number.$amount.$destinationPhoneNumber.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
-
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/airtimePurchase";
+            $data = array(
+                    'referenceNumber'=>$reference_number,
+                    'amount'=>$amount,
+                    'destinationPhoneNumber'=>$destinationPhoneNumber
+                );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
 
     }
 
     /**
      * Account Balance
-     * 
+     *
      * @param string $reference_number A unique reference number provided by the client to uniquely identify the transaction
-     *            
+     *
      * @return JSON Object with the account balance details
      */
     public function accountBalance($reference_number)
     {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/accountBalance";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number
-        );
-
-        $hash_string = $reference_number.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
-
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured/accountBalance";
+            $data = array(
+                    'referenceNumber'=>$reference_number
+                );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
 
     }
 
     /**
-     * Deposit to Bank 
-     * 
-     * @param string $reference_number             A unique reference number provided by the business, identifying the transaction.           
+     * Deposit to Bank
+     *
+     * @param string $reference_number             A unique reference number provided by the business, identifying the transaction.
      * @param string $amount                       The amount
      * @param string $destinationBankUUID          The bank UUID.
      * @param string $destinationBankAccountNumber The bank account number to which the money is deposited.
      * @param string $recipientPhoneNumber         Phone number of recipient user
      * @param string $currency                     The currency to be used(eg,NGN)
-     * 
+     *
      * @return JSON Object
      */
-    public function depositToBank($reference_number, $amount, $destinationBankUUID, 
-        $destinationBankAccountNumber,$recipientPhoneNumber,$currency
+    public function depositToBank(
+        $reference_number,
+        $amount,
+        $destinationBankUUID,
+        $destinationBankAccountNumber,
+        $recipientPhoneNumber,
+        $currency
     ) {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/depositToBank";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'amount'=>$amount,
-            'destinationBankUUID'=>$destinationBankUUID,
-            'destinationBankAccountNumber'=>$destinationBankAccountNumber,
-            "recipientPhoneNumber"=>$recipientPhoneNumber,
-            "currency"=>$currency,
-        );
-
-        $hash_string = $reference_number.$amount.$destinationBankUUID.$destinationBankAccountNumber.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured/depositToBank";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'amount'=>$amount,
+                'destinationBankUUID'=>$destinationBankUUID,
+                'destinationBankAccountNumber'=>$destinationBankAccountNumber,
+                "recipientPhoneNumber"=>$recipientPhoneNumber,
+                "currency"=>$currency,
+            );
+            $hash_string = array($reference_number,$amount,$destinationBankUUID,
+            $destinationBankAccountNumber);
+            $hash = $this->createHash($hash_string);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return  $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Validate Deposit to Bank
-     * 
-     * @param string $reference_number             A unique reference number provided by the business, identifying the transaction.           
-     * @param string $amount                       The amount           
-     * @param string $destinationBankUUID          The bank UUID.            
+     *
+     * @param string $reference_number             A unique reference number provided by the business, identifying the transaction.
+     * @param string $amount                       The amount
+     * @param string $destinationBankUUID          The bank UUID.
      * @param string $destinationBankAccountNumber The bank account number to which the money is deposited.
-     *              
+     *
      * @return JSON Object
      */
-    public function validateDepositToBank($reference_number, $amount, $destinationBankUUID, $destinationBankAccountNumber){
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/validateDepositToBank";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'amount'=>$amount,
-            'destinationBankUUID'=>$destinationBankUUID,
-            'destinationBankAccountNumber'=>$destinationBankAccountNumber
-        );
-
-        $hash_string = $reference_number.$amount.$destinationBankUUID.$destinationBankAccountNumber.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+    public function validateDepositToBank(
+        $reference_number,
+        $amount,
+        $destinationBankUUID,
+        $destinationBankAccountNumber
+    ) {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/validateDepositToBank";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'amount'=>$amount,
+                'destinationBankUUID'=>$destinationBankUUID,
+                'destinationBankAccountNumber'=>$destinationBankAccountNumber
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
   
@@ -658,132 +686,141 @@ class PagaBusinessClient
      * Money Transfer Bulk function
      *
      * @param string  $bulkReferenceNumber A unique bulk reference number provided by the business, identifying the transaction.
-     * @param mixed[] $items_arr           Parameters of items_arr  
-     * 
+     * @param mixed[] $items_arr           Parameters of items_arr
+     *
      * @property string $reference_number   unique number identifies the transaction
      * @property string $amount             the amount to be transferred
      * @property string $destinationAccount account number of the receiver(e.g.receiver phone number)
      * @property string $senderPrincipal    sender user name
      * @property string $currency           the currency used in the transaction (e.g.NGN)
-     * 
+     *
      * @return JSON Object
      */
-    public function moneyTransferBulk($bulkReferenceNumber,$items_arr)
+    public function moneyTransferBulk($bulkReferenceNumber, $items_arr)
     {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/moneyTransferBulk";
 
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/moneyTransferBulk";
-        $credential = null;
+            $data = array(
+                "bulkReferenceNumber"=>$bulkReferenceNumber,
+                "items"=>$items_arr
+            );
 
-        $data = array(
-            "bulkReferenceNumber"=>$bulkReferenceNumber,
-            "items"=>$items_arr
-        );
-
-        $hash_string = $items_arr[0]["referenceNumber"].$items_arr[0]["amount"].$items_arr[0]["destinationAccount"].sizeof($items_arr). $this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+            $hash_string = array($items_arr[0]["referenceNumber"],
+            $items_arr[0]["amount"],
+            $items_arr[0]["destinationAccount"], sizeof($items_arr));
+            $hash = $this->createHash($hash_string);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Merchant Payment
-     * 
-     * @param string $reference_number        A unique reference number provided by the business, identifying the transaction.               
-     * @param double $amount                  The amount of the merchant payment             
-     * @param string $merchantAccount         The account identifying the merchant (eg. merchant Id, UUID, name).           
-     * @param string $merchantReferenceNumber The account/reference number identifying the customer on the merchant's system.            
-     * @param string $currency                The currency to be used(ex.NGN)             
-     * @param string $merchantService         Array of the services provided by the merchant            
+     *
+     * @param string $reference_number        A unique reference number provided by the business, identifying the transaction.
+     * @param double $amount                  The amount of the merchant payment
+     * @param string $merchantAccount         The account identifying the merchant (eg. merchant Id, UUID, name).
+     * @param string $merchantReferenceNumber The account/reference number identifying the customer on the merchant's system.
+     * @param string $currency                The currency to be used(ex.NGN)
+     * @param string $merchantService         Array of the services provided by the merchant
      *
      * @return JSON Object
      */
-    public function merchantPayment($reference_number, $amount, $merchantAccount, $merchantReferenceNumber, $currency, $merchantService){
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/merchantPayment";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'amount'=>$amount,
-            'merchantAccount'=>$merchantAccount,
-            'merchantReferenceNumber'=>$merchantReferenceNumber,
-            "currency" =>$currency,
-            "merchantService"=>$merchantService
-        );
-
-        $hash_string = $reference_number.$amount.$merchantAccount.$merchantReferenceNumber.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+    public function merchantPayment(
+        $reference_number,
+        $amount,
+        $merchantAccount,
+        $merchantReferenceNumber,
+        $currency,
+        $merchantService
+    ) {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured/merchantPayment";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'amount'=>$amount,
+                'merchantAccount'=>$merchantAccount,
+                'merchantReferenceNumber'=>$merchantReferenceNumber,
+                "currency" =>$currency,
+                "merchantService"=>$merchantService
+            );
+    
+            $hash_string = array($reference_number,$amount,$merchantAccount,
+            $merchantReferenceNumber);
+            $hash = $this->createHash($hash_string);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Transaction History
-     * 
+     *
      * @param string $reference_number A unique reference number identifying the transaction.
-     *              
+     *
      * @return JSON Object
      */
     public function transactionHistory($reference_number)
     {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/transactionHistory";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number
-        );
-
-        $hash_string = $reference_number.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/transactionHistory";
+            $data = array(
+                'referenceNumber'=>$reference_number
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Recent Transaction History
-     * 
+     *
      * @param string $reference_number A unique reference number identifying the transaction.
-     *               
+     *
      * @return JSON Object
      */
     public function recentTransactionHistory($reference_number)
     {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/transactionHistory";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number
-        );
-
-        $hash_string = $reference_number.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/transactionHistory";
+            $data = array(
+                'referenceNumber'=>$reference_number
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
 
     /**
      * Onboard Merchant
-     * 
+     *
      * @param string  $reference          A unique reference number provided by the business, identifying the transaction. This reference number will be preserved on the Paga platform to reconcile the operation across systems and will be returned in the response
      * @param string  $merchantExternalId A unique reference number provided by the business, identifying the specific Organization account to be created.
      * @param mixed[] $merchantInfo       Containing information about the Organization to be created.
@@ -791,94 +828,97 @@ class PagaBusinessClient
      *
      * @return Json
      */
-    public function onboardMerchant($reference,$merchantExternalId,$merchantInfo,
+    public function onboardMerchant(
+        $reference,
+        $merchantExternalId,
+        $merchantInfo,
         $integration
     ) {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured/onboardMerchant";
+            $data = array(
+                'reference'=>$reference,
+                'merchantExternalId'=>$merchantExternalId,
+                'merchantInfo' =>$merchantInfo,
+                'integration' =>$integration
+            );
 
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/onboardMerchant";
-        $credential = null;
-        $data = array(
-            'reference'=>$reference,
-            'merchantExternalId'=>$merchantExternalId,
-            'merchantInfo' =>$merchantInfo,
-            'integration' =>$integration
-        );
+            $hash_string = array($reference.$merchantExternalId,
+            $merchantInfo["legalEntity"]["name"],
+            $merchantInfo["legalEntityRepresentative"]["phone"],
+            $merchantInfo["legalEntityRepresentative"]["email"]);
 
-        $hash_string = $reference.$merchantExternalId.$merchantInfo["legalEntity"]["name"].$merchantInfo["legalEntityRepresentative"]["phone"].$merchantInfo["legalEntityRepresentative"]["email"].$this->apiKey;
+            $hash = $this->createHash($hash_string);
 
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
-
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
-    /** 
+    /**
      * Validate Customer
-     * 
+     *
      * @param String $reference_number   A unique reference number provided by the business, identifying the transaction.
      *                                   This reference number will be preserved on the Paga platform to reconcile the operation across systems and will
      *                                   be returned in the response
      * @param String $customerIdentifier The value that identifies the user(ex. Phonenumber, email)
-     *        
+     *
      * @return string JSON Object identifies the user
      */
     public function validateCustomer($reference_number, $customerIdentifier)
     {
-
-        $server = ($this->test) ? $this->test_server : $this->live_server;
-        $url = $server."/paga-webservices/business-rest/secured/validateCustomer";
-        $credential = null;
-        $data = array(
-            'referenceNumber'=>$reference_number,
-            'customerIdentifier'=>$customerIdentifier,
-
-        );
-
-        $hash_string = $reference_number.$customerIdentifier.$this->apiKey;
-
-        $hash = hash('sha512', $hash_string);
-
-        $curl = $this->buildRequest($url, $hash, $data);
-        $response = curl_exec($curl);
-        $this->checkCURL($curl);
-        return $response;
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server.
+            "/paga-webservices/business-rest/secured/validateCustomer";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'customerIdentifier'=>$customerIdentifier,
+            );
+            $hash = $this->createHash($data);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
      * Cherck  CURL
-     * 
-     * @param string $curl CURL
-     * 
+     *
+     * @param string $curl     CURL
+     * @param object $response API response
+     *
      * @return void
      */
-    public function checkCURL($curl)
+    public function checkCURL($curl, $response)
     {
+        $logger = new Logger('stderr');
+        $logger->pushHandler(new StreamHandler('php://stderr'));
         if (curl_errno($curl)) {
-            echo 'Curl error: ' . curl_error($curl);
+            return $logger->error('response: '.curl_error($response));
         }
 
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        printf("<br/>HTTP Code: " . $httpcode);
 
         if ($httpcode == 200) {
-            printf("SUCCESSFUL");
+            return $logger->info('response:', [$response]);
         }
-        //var_dump($response);
 
-        curl_close($curl);
+        return curl_close($curl);
     }
-
-
-
 }
 
 /**
  * Builder Class
- * 
+ *
  * @category  PHP
  * @package   PagaMerchant
  * @author    PagaDevComm <devcomm@paga.com>
@@ -887,35 +927,35 @@ class PagaBusinessClient
  * @link      https://packagist.org/packages/paga/paga-merchant
  */
 class Builder
-{   
+{
+
     /**
      * __construct
      */
-    function __construct()
+    public function __construct()
     {
-        
     }
 
-     /**
-      * Set API Key function
-      *
-      * @param string $apiKey Merchant api key
-      * 
-      * @return void
-      */
+    /**
+     * Set API Key function
+     *
+     * @param string $apiKey Merchant api key
+     *
+     * @return void
+     */
     public function setApiKey($apiKey)
     {
         $this->apiKey = $apiKey;
         return $this;
     }
 
-     /**
-      * Set Principal function
-      *
-      * @param string $principal Merchant public ID from paga
-      * 
-      * @return void
-      */
+    /**
+     * Set Principal function
+     *
+     * @param string $principal Merchant public ID from paga
+     *
+     * @return void
+     */
     public function setPrincipal($principal)
     {
         $this->principal = $principal;
@@ -923,13 +963,13 @@ class Builder
     }
 
 
-     /**
-      * Set Credential function
-      *
-      * @param string $credential Merchant password from paga
-      * 
-      * @return void
-      */
+    /**
+     * Set Credential function
+     *
+     * @param string $credential Merchant password from paga
+     *
+     * @return void
+     */
     public function setCredential($credential)
     {
         $this->credential = $credential;
@@ -937,13 +977,13 @@ class Builder
     }
 
 
-     /**
-      * Set Test function
-      *
-      * @param string $test test to set testing or live(true for test,false for live)
-      * 
-      * @return void
-      */
+    /**
+     * Set Test function
+     *
+     * @param string $test test to set testing or live(true for test,false for live)
+     *
+     * @return void
+     */
     public function setTest($test)
     {
         $this->test = $test;
