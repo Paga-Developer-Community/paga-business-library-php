@@ -52,38 +52,11 @@ The Register Customer operation allows 3rd Parties to register customers on Paga
 $response = $businessClient ->registerCustomer(
     "referenceNumber",
     "customerPhoneNumber",
-    "customerEmail",
     "customerFirstName",
     "customerLastName",
+    "customerEmail",
     "customerDateOfBirth",
-    "customerGender",
-    $customerAddress,
-    "customerMaritalStatus",
-    "customerPreferredLanguageISOCode",
-    "customerReferredByPhoneNumber",
-    "customerReferredByFirstName",
-    "customerReferredByLastName",
-    "customerIdType",
-    "customerIdNumber",
-    "customerIdExpirationDate",
-    "optinForWalletSavings",
-    "customerSupplementaryDetailsNextOfKinLastName",
-    "customerSupplementaryDetailsNextOfKinFirstName",
-    "customerSupplementaryDetailsNextOfKinType",
-    "customerSupplementaryDetailsNextOfKinPhoneNumber"
 )
-
-$customerAddress = array(
-  "country"=>"Nigeria", 
-  "region"=>"Abia", 
-  "county"=>"", 
-  "city"=>"", 
-  "localGovernmentArea"=>"", 
-  "streetAddress"=>"test_address", 
-  "postalCode"=>"", 
-  "landmark"=>"", 
-  "freeformAddress"=>""
-);
 
 ```
 **Register Customer Account Photo**
