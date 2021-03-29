@@ -890,6 +890,103 @@ class PagaBusinessClient
         }
     }
 
+        /**
+         * Register Persistent Payment Account function
+         *
+         * @param string $reference_number A unique reference number for this request
+         *                                 .This same reference number will be returned 
+         *                                 in the response.                        
+         * @param string $phone_number     The phone number of the customer.
+         * @param string $account_name     The acount name of your customer.
+         * @param string $first_name       The first name of the your customer.
+         * @param string $last_name        The last name of the your customer.
+         * @param string $financial_identification_number
+         *                                 The customer's Bank verification Number (BVN).
+         * @param string $email            The acount name of your customer.
+         * @param string $account_Reference     This is a unique reference number provided by the Organization which identifies the persistent account Number. It should have a minimum length of 12 characters and a maximum length of 30 characters
+         *
+         * @return JSON Object with List of Banks integrated with paga
+         */
+    public function registerPersistentPaymentAccount($reference_number, 
+        $phone_number, $account_name,$first_name, $last_name, 
+        $financial_identification_number, $email,$account_Reference
+    ) {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured
+            /registerPersistentPaymentAccount";
+            $data = array(
+                'referenceNumber'=>$reference_number,
+                'phoneNumber'=>$phone_number,
+                'accountName'=>$account_name,
+                'firstName'=>$first_name, 
+                'lastName'=>$last_name, 
+                'financialIdentificationNumber'=>$financial_identification_number,
+                'email'=>$email,
+                'accountReference'=>$account_Reference
+
+            );
+            $hash_string= array(
+                $reference_number,
+                $phone_number,
+              
+            );
+            $hash = $this->createHash($hash_string);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    /**
+     * Get Persistent Payment Account Activity function
+     *
+     * @param string $reference_number             A unique reference number for this request
+     *                                             .This same reference number will be returned 
+     *                                             in the response.                        
+     * @param string $account_number               A valid Persistent Payment Account Number..
+     * @param string $get_last_single_activity     A flag if set to true would return only the last activity on the Persistent Payment Account
+     * @param string $start_date                   The start date for which records are to be returned.
+     * @param string $end_date                     The end of the time frame for the records to be returned.
+     * @param string $account_Reference     This is a unique reference number provided by the Organization which identifies the persistent account Number. It should have a minimum length of 12 characters and a maximum length of 30 characters
+     *
+     * @return JSON Object with List of Banks integrated with paga
+     */
+    public function getPersistentPaymentAccountActivity($reference_number, $account_number, 
+        $get_last_single_activity, $start_date, $end_date, $account_reference
+    ) {
+        try {
+            $server = ($this->test) ? $this->test_server : $this->live_server;
+            $url = $server."/paga-webservices/business-rest/secured
+                            /getPersistentPaymentAccountActivity";
+            $data = array(
+            'referenceNumber'=>$reference_number,
+            'accountNumber' =>$account_number,
+            'getLatestSingleActivity'=>$get_last_single_activity,
+            'startDate' => $start_date,
+            'endDate'=> $end_date,
+            'accountReference' => $account_reference
+
+            );
+
+            $hash_string= array(
+                $reference_number
+              
+            );
+            $hash =$this->createHash($hash_string);
+            $curl = $this->buildRequest($url, $hash, $data);
+            $response = curl_exec($curl);
+            $this->checkCURL($curl, json_decode($response, true));
+            return $response;
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+
     /**
      * Cherck  CURL
      *
