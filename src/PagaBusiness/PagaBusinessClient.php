@@ -909,12 +909,12 @@ class PagaBusinessClient
          */
     public function registerPersistentPaymentAccount($reference_number, 
         $phone_number, $account_name,$first_name, $last_name, 
-        $financial_identification_number, $email,$account_Reference
+        $financial_identification_number, $email, $account_Reference
     ) {
         try {
             $server = ($this->test) ? $this->test_server : $this->live_server;
-            $url = $server."/paga-webservices/business-rest/secured
-            /registerPersistentPaymentAccount";
+            $url = $server.
+            "/paga-webservices/business-rest/secured/registerPersistentPaymentAccount";
             $data = array(
                 'referenceNumber'=>$reference_number,
                 'phoneNumber'=>$phone_number,
@@ -924,12 +924,11 @@ class PagaBusinessClient
                 'financialIdentificationNumber'=>$financial_identification_number,
                 'email'=>$email,
                 'accountReference'=>$account_Reference
-
             );
             $hash_string= array(
                 $reference_number,
                 $phone_number,
-              
+                        
             );
             $hash = $this->createHash($hash_string);
             $curl = $this->buildRequest($url, $hash, $data);
@@ -974,7 +973,7 @@ class PagaBusinessClient
 
             $hash_string= array(
                 $reference_number
-              
+            
             );
             $hash =$this->createHash($hash_string);
             $curl = $this->buildRequest($url, $hash, $data);
