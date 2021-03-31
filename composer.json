@@ -4,7 +4,7 @@
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/pagadevcomm/paga-business-library-php",
-    "version": "v1.0.8",
+    "version": "v1.0.7",
     "keywords": ["Paga", "paga-business", "payment"],
     "authors": [
         {
