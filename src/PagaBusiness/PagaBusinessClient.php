@@ -959,8 +959,7 @@ class PagaBusinessClient
     ) {
         try {
             $server = ($this->test) ? $this->test_server : $this->live_server;
-            $url = $server."/paga-webservices/business-rest/secured
-                            /getPersistentPaymentAccountActivity";
+            $url = $server."/paga-webservices/business-rest/secured/getPersistentPaymentAccountActivity";
             $data = array(
             'referenceNumber'=>$reference_number,
             'accountNumber' =>$account_number,
