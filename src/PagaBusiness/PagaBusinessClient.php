@@ -18,6 +18,9 @@ use Exception;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
+// require_once __DIR__ . '/Config.php';
+
+use PagaBusiness\Config;
 
 $logger = new Logger('stderr');
 $logger->pushHandler(new StreamHandler('php://stderr', Logger::WARNING));
@@ -35,9 +38,13 @@ $logger->pushHandler(new StreamHandler('php://stderr', Logger::WARNING));
  */
 class PagaBusinessClient
 {
-    public $test_server = "https://beta.mypaga.com"; 
-    public $live_server = "https://www.mypaga.com";
-
+    public $test_server;
+    public $live_server;
+    public $apiKey;
+    public $credential;
+    public $principal;
+    public $test;
+    
 
 
     /**
@@ -47,6 +54,9 @@ class PagaBusinessClient
      */
     public function __construct($builder)
     {
+        $this->test_server = Config::$test_server;
+        $this->live_server = Config::$live_server;
+
         $this->apiKey =$builder->apiKey;
         $this->principal = $builder->principal;
         $this->credential = $builder->credential;
@@ -263,8 +273,6 @@ class PagaBusinessClient
             
         }
     }
-
-
 
     /**
      * Get Operation Status function
