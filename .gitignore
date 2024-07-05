@@ -1,1 +1,5 @@
 /vendor/
+/src/PagaBusiness/test/
+.DS_Store
+/src/.DS_Store
+.vscode/
